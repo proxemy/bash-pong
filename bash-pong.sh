@@ -29,12 +29,12 @@ done
 
 
 
-function f_game	# calculates ball and player movement
+function game_loop	# calculates ball and player movement
 {
 	if (( ${ball[1]} <= 2 )) || (( ${ball[1]} >= ${maxfieldsize[1]} - 2 )); then				# game over cond
-		f_ball "1"
+		calculate_ball_vector "1"
 	elif (( ${ball[0]} <= 2 )) || (( ${ball[0]} >= ${maxfieldsize[0]} - 2 )); then				# ball border bounce
-		f_ball "0"
+		calculate_ball_vector "0"
 	elif [ ${field[ (($ball_field-1)) ]} == 3 ] || [ ${field[ (($ball_field+1)) ]} == 3 ]; then	# player collision cond
 		echo "PLAYER COLLISION ball = ${ball[@]}, player1=$player1, player2=$player2"
 		exit
@@ -76,7 +76,7 @@ function f_game	# calculates ball and player movement
 }
 
 
-function f_ball	# calculates impact and outbound angle. 0=border bounce, 1=player bounce.
+function calculate_ball_vector # calculates impact and outbound angle. 0=border bounce, 1=player bounce.
 {
 	if (( $1 == 0 )); then		# border bounce
 		let "d_ball[0] -= 2 * d_ball[0]"	#inverts delta
@@ -90,7 +90,8 @@ function f_ball	# calculates impact and outbound angle. 0=border bounce, 1=playe
 }
 
 
-function f_set_fields {		# writes the calculated coords to field[]
+function render_framebuffer # writes the calculated coords to field[]
+{
 
 	tempvar=$(( (${ball[0]} - 1) * ${maxfieldsize[1]} + ${ball[1]} ))	# calculates Xth field[] in array from X/Y ball-coordg
 	field[$tempvar]=3	#sets ball
@@ -118,7 +119,7 @@ function f_set_fields {		# writes the calculated coords to field[]
 }
 
 
-function f_init_fields {	# initilizes all fields and coords to start
+function init_framebuffer {	# initilizes all fields and coords to start
 
 	for (( i=0; i<=${maxfieldsize[0]}*${maxfieldsize[1]}-1; i++ )); do
 
@@ -146,10 +147,10 @@ function f_init_fields {	# initilizes all fields and coords to start
 
 		ball[1]=${maxfieldsize[1]}	# set ball X in middle
 		let "ball[1]/=2"
-		
+
 		player1=${maxfieldsize[0]}	# set player1 in middle
 		let "player1/=2"
-		
+
 		player2=${maxfieldsize[0]}	# set player2 in middle
 		let "player2/=2"
 
@@ -158,7 +159,7 @@ function f_init_fields {	# initilizes all fields and coords to start
 }
 
 
-function f_draw_screen {	# summs up all the field[]s in one string and echos it
+function echo_framebuffer {	# summs up all the field[]s in one string and echos it
 	unset tempvar
 	for (( i=0; i<=${#field[@]}-1; i++ )); do		#writes the field status into one string so only one echo is needed
 		if [ ${field[$i]} == 0 ]; then		# draw empty field
@@ -182,16 +183,16 @@ function f_draw_screen {	# summs up all the field[]s in one string and echos it
 }
 
 #echo "1 --- ${#field[@]}"
-f_init_fields
+init_framebuffer
 #echo "2 --- ${#field[@]}"
 #f_set_fields
 #echo "3 --- ${#field[@]} --- ${field[@]}"
 #f_draw_screen
 
 while true; do
-	f_game
-	f_set_fields
-	f_draw_screen
+	game_loop
+	render_framebuffer
+	echo_framebuffer
 done
 
 #echo "${#field[@]} --- \"${field[1860]}\""
