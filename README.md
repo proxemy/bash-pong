@@ -10,3 +10,6 @@ Yep, it really required bash.
 * Opponent AI
 * Two player support
 * Colored output
+* handle propper "fps" limits
+* carriage return over several lines to overwrite the screen content
+* relative speed to the screen/field size
